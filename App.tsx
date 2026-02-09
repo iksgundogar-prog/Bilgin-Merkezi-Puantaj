@@ -1,20 +1,20 @@
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
-  LogIn, LogOut, LayoutDashboard, Users, MapPin, UserCheck,
-  ClipboardList, Lock, Unlock, FileDown, FileText, Bell, Search, Menu, X
+  LogOut, LayoutDashboard, Users, MapPin, UserCheck,
+  ClipboardList, Lock, FileDown, FileText, Bell, Menu, X
 } from 'lucide-react';
-import { Role, Location, Employee, User, AttendanceData, AuditLog, LockedPeriods, Page } from './types.ts';
-import { SEED_USERS, SEED_EMPLOYEES, LOCATIONS } from './constants.tsx';
-import Dashboard from './components/Dashboard.tsx';
-import PuantajPage from './components/PuantajPage.tsx';
-import PersonelPage from './components/PersonelPage.tsx';
-import LokasyonPage from './components/LokasyonPage.tsx';
-import KullancPage from './components/KullancPage.tsx';
-import DonemKilitPage from './components/DonemKilitPage.tsx';
-import MikroExportPage from './components/MikroExportPage.tsx';
-import AuditLogPage from './components/AuditLogPage.tsx';
-import LoginPage from './components/LoginPage.tsx';
+import { Location, Employee, User, AttendanceData, AuditLog, LockedPeriods, Page } from './types';
+import { SEED_USERS, SEED_EMPLOYEES, LOCATIONS } from './constants';
+import Dashboard from './components/Dashboard';
+import PuantajPage from './components/PuantajPage';
+import PersonelPage from './components/PersonelPage';
+import LokasyonPage from './components/LokasyonPage';
+import KullancPage from './components/KullancPage';
+import DonemKilitPage from './components/DonemKilitPage';
+import MikroExportPage from './components/MikroExportPage';
+import AuditLogPage from './components/AuditLogPage';
+import LoginPage from './components/LoginPage';
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -75,7 +75,6 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen text-[#252F9C] overflow-hidden bg-[#fdfdfd]">
-      {/* Sidebar */}
       <aside 
         className={`flex-shrink-0 transition-all duration-500 flex flex-col z-50 ${sidebarOpen ? 'w-80' : 'w-24'}`}
         style={{ background: "linear-gradient(180deg, #252F9C 0%, #1a237e 100%)" }}
@@ -136,7 +135,6 @@ const App: React.FC = () => {
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-24 bg-white/70 backdrop-blur-md border-b border-[#CFE5FF] flex items-center justify-between px-12 flex-shrink-0 z-40">
           <div className="flex items-center space-x-8">
