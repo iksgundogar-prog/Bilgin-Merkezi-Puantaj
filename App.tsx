@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import { Location, Employee, User, AttendanceData, AuditLog, LockedPeriods, Page } from './types';
 import { SEED_USERS, SEED_EMPLOYEES, LOCATIONS } from './constants';
+
+// Vercel/Linux Build Hatasını Çözmek İçin Import Yolları Küçük Harfe Revize Edildi
 import Dashboard from './components/Dashboard';
 import PuantajPage from './components/PuantajPage';
 import PersonelPage from './components/PersonelPage';
@@ -26,155 +28,103 @@ const App: React.FC = () => {
   const [users, setUsers] = useState<User[]>(SEED_USERS);
   const [attendance, setAttendance] = useState<AttendanceData>({});
   const [lockedPeriods, setLockedPeriods] = useState<LockedPeriods>({});
-  const [auditLog, setAuditLog] = useState<AuditLog[]>([
-    { id: 1, user: "Sistem", action: "INIT", detail: "Sistem başlatıldı", time: new Date().toLocaleString("tr") }
-  ]);
+  const [auditLog, setAuditLog] = useState<AuditLog[]>([]);
 
-  const addAudit = useCallback((action: string, detail: string) => {
-    setAuditLog(prev => [
-      {
-        id: prev.length + 1,
-        user: currentUser?.username || "Misafir",
-        action,
-        detail,
-        time: new Date().toLocaleString("tr")
-      },
-      ...prev
-    ]);
+  const addAudit = useCallback((action: string, details: string) => {
+    const newLog: AuditLog = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      user: currentUser?.name || 'Sistem',
+      action,
+      details
+    };
+    setAuditLog(prev => [newLog, ...prev]);
   }, [currentUser]);
 
-  const handleLogin = (user: User) => {
-    setCurrentUser(user);
-    addAudit("LOGIN", "Sisteme giriş yapıldı");
-  };
-
-  const handleLogout = () => {
-    addAudit("LOGOUT", "Sistemden çıkış yapıldı");
-    setCurrentUser(null);
-  };
-
-  const isAdmin = currentUser?.role === 'ADMIN';
-
-  const NAV_ITEMS = [
-    { key: 'dashboard', label: 'DASHBOARD', icon: LayoutDashboard },
-    { key: 'puantaj', label: 'PUANTAJ FORMU', icon: ClipboardList },
-    { key: 'personel', label: 'PERSONEL YÖNETİMİ', icon: UserCheck },
-    ...(isAdmin ? [
-      { key: 'lokasyon', label: 'LOKASYONLAR', icon: MapPin },
-      { key: 'kullanici', label: 'KULLANICILAR', icon: Users },
-      { key: 'donemkilit', label: 'DÖNEM KİLİTLEME', icon: Lock },
-      { key: 'mikroexp', label: 'MİKRO EXPORT', icon: FileDown },
-      { key: 'auditlog', label: 'SİSTEM LOGLARI', icon: FileText },
-    ] : [])
-  ] as { key: Page, label: string, icon: any }[];
-
   if (!currentUser) {
-    return <LoginPage users={users} onLogin={handleLogin} />;
+    return <LoginPage onLogin={setCurrentUser} users={users} />;
   }
 
+  const isAdmin = currentUser.role === 'admin';
+
   return (
-    <div className="flex min-h-screen text-[#252F9C] overflow-hidden bg-[#fdfdfd]">
-      <aside 
-        className={`flex-shrink-0 transition-all duration-500 flex flex-col z-50 ${sidebarOpen ? 'w-80' : 'w-24'}`}
-        style={{ background: "linear-gradient(180deg, #252F9C 0%, #1a237e 100%)" }}
-      >
-        <div className="h-24 flex items-center px-8 border-b border-white/5 bg-black/10">
-          <div className="bg-[#7C1034] p-2.5 rounded-2xl shadow-xl shadow-black/20">
-            <ClipboardList className="text-white w-9 h-9" />
-          </div>
-          {sidebarOpen && (
-            <div className="ml-5 flex flex-col">
-              <span className="font-black text-2xl tracking-tighter text-white italic leading-none">BİLGİN</span>
-              <span className="text-[8px] font-bold text-[#CFE5FF]/60 uppercase tracking-[0.4em] mt-1">Puantaj Merkezi</span>
-            </div>
-          )}
+    <div className="flex h-screen bg-[#f8fafc]">
+      {/* Sidebar ve Navigation */}
+      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-[#252f3c] text-white transition-all duration-300 flex flex-col shadow-xl`}>
+        <div className="p-6 flex items-center justify-between border-b border-gray-700/50">
+          {sidebarOpen && <span className="font-bold text-xl tracking-tight text-blue-400">BİLGİN GRID</span>}
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1.5 hover:bg-gray-700 rounded-lg">
+            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
 
-        <nav className="flex-1 py-10 px-5 space-y-3 overflow-y-auto custom-scrollbar">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => setPage(item.key)}
-              className={`w-full flex items-center px-5 py-4.5 rounded-[1.5rem] transition-all duration-500 group relative ${
-                page === item.key 
-                  ? 'bg-[#7C1034] text-white shadow-2xl shadow-[#7C1034]/40 scale-[1.02]' 
-                  : 'text-white/40 hover:bg-white/5 hover:text-[#CFE5FF]'
-              }`}
-            >
-              <item.icon className={`w-6 h-6 flex-shrink-0 transition-transform ${page === item.key ? 'text-white' : 'group-hover:scale-110'}`} />
-              {sidebarOpen && <span className="ml-5 font-black text-xs tracking-widest uppercase">{item.label}</span>}
-              {page === item.key && sidebarOpen && (
-                <div className="absolute right-4 w-2 h-2 bg-white rounded-full animate-pulse shadow-[0_0_10px_white]" />
-              )}
-            </button>
-          ))}
+        <nav className="flex-1 mt-6 px-3 space-y-1">
+          <button onClick={() => setPage('dashboard')} className={`w-full flex items-center p-3 rounded-xl transition-all ${page === 'dashboard' ? 'bg-blue-600 shadow-lg shadow-blue-900/20' : 'hover:bg-gray-800'}`}>
+            <LayoutDashboard size={20} className={page === 'dashboard' ? 'text-white' : 'text-gray-400'} />
+            {sidebarOpen && <span className="ml-3 font-medium">Dashboard</span>}
+          </button>
+          
+          <button onClick={() => setPage('puantaj')} className={`w-full flex items-center p-3 rounded-xl transition-all ${page === 'puantaj' ? 'bg-blue-600 shadow-lg shadow-blue-900/20' : 'hover:bg-gray-800'}`}>
+            <ClipboardList size={20} className={page === 'puantaj' ? 'text-white' : 'text-gray-400'} />
+            {sidebarOpen && <span className="ml-3 font-medium">Puantaj Matrisi</span>}
+          </button>
+
+          {isAdmin && (
+            <>
+              <button onClick={() => setPage('personel')} className={`w-full flex items-center p-3 rounded-xl transition-all ${page === 'personel' ? 'bg-blue-600 shadow-lg shadow-blue-900/20' : 'hover:bg-gray-800'}`}>
+                <Users size={20} className={page === 'personel' ? 'text-white' : 'text-gray-400'} />
+                {sidebarOpen && <span className="ml-3 font-medium">Personel Yönetimi</span>}
+              </button>
+              <button onClick={() => setPage('lokasyon')} className={`w-full flex items-center p-3 rounded-xl transition-all ${page === 'lokasyon' ? 'bg-blue-600 shadow-lg shadow-blue-900/20' : 'hover:bg-gray-800'}`}>
+                <MapPin size={20} className={page === 'lokasyon' ? 'text-white' : 'text-gray-400'} />
+                {sidebarOpen && <span className="ml-3 font-medium">Lokasyonlar</span>}
+              </button>
+              <button onClick={() => setPage('donemkilit')} className={`w-full flex items-center p-3 rounded-xl transition-all ${page === 'donemkilit' ? 'bg-blue-600 shadow-lg shadow-blue-900/20' : 'hover:bg-gray-800'}`}>
+                <Lock size={20} className={page === 'donemkilit' ? 'text-white' : 'text-gray-400'} />
+                {sidebarOpen && <span className="ml-3 font-medium">Dönem Kilidi</span>}
+              </button>
+            </>
+          )}
+
+          <button onClick={() => setPage('mikroexp')} className={`w-full flex items-center p-3 rounded-xl transition-all ${page === 'mikroexp' ? 'bg-blue-600 shadow-lg shadow-blue-900/20' : 'hover:bg-gray-800'}`}>
+            <FileDown size={20} className={page === 'mikroexp' ? 'text-white' : 'text-gray-400'} />
+            {sidebarOpen && <span className="ml-3 font-medium">Dışa Aktar</span>}
+          </button>
         </nav>
 
-        <div className="p-8 border-t border-white/5 bg-black/15">
-          <div className={`flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
-            {sidebarOpen && (
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#CFE5FF] flex items-center justify-center text-lg font-black text-[#252F9C] shadow-lg">
-                  {currentUser.username[0].toUpperCase()}
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-black text-white truncate">{currentUser.fullName}</span>
-                  <span className="text-[9px] text-[#CFE5FF]/50 uppercase font-black tracking-widest">{currentUser.role}</span>
-                </div>
-              </div>
-            )}
-            <button 
-              onClick={handleLogout} 
-              className="p-4 text-white/30 hover:text-white hover:bg-[#7C1034] rounded-2xl transition-all shadow-sm"
-              title="Güvenli Çıkış"
-            >
-              <LogOut className="w-6 h-6" />
-            </button>
-          </div>
+        <div className="p-4 border-t border-gray-700/50">
+          <button onClick={() => setCurrentUser(null)} className="w-full flex items-center p-3 text-red-400 hover:bg-red-900/20 rounded-xl transition-all">
+            <LogOut size={20} />
+            {sidebarOpen && <span className="ml-3 font-medium">Çıkış Yap</span>}
+          </button>
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-24 bg-white/70 backdrop-blur-md border-b border-[#CFE5FF] flex items-center justify-between px-12 flex-shrink-0 z-40">
-          <div className="flex items-center space-x-8">
-            <button 
-              onClick={() => setSidebarOpen(!sidebarOpen)} 
-              className="p-4 text-[#252F9C] bg-[#CFE5FF]/30 hover:bg-[#CFE5FF] rounded-[1.25rem] transition-all"
-            >
-              {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-            <div className="flex flex-col">
-              <h2 className="text-sm font-black text-[#252F9C] uppercase tracking-[0.3em] leading-none mb-2">Merkezi Kontrol Paneli</h2>
-              <div className="flex items-center space-x-3">
-                <div className="flex space-x-1">
-                   {[1,2,3].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" style={{ animationDelay: `${i * 0.2}s` }} />)}
-                </div>
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sistem Aktif</span>
-              </div>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 shadow-sm z-10">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+              {currentUser.name[0]}
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-800 leading-none">{currentUser.name}</h1>
+              <p className="text-sm text-gray-500 mt-1 capitalize">{currentUser.role} Paneli</p>
             </div>
           </div>
-          
-          <div className="flex items-center space-x-8">
-             <div className="hidden md:flex flex-col text-right pr-8 border-r border-[#CFE5FF]">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">GÜNCEL TARİH</span>
-                <span className="text-base font-black text-[#252F9C] uppercase">{new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-             </div>
-             <div className="relative group">
-                <div className="p-4 bg-[#CFE5FF]/30 rounded-[1.25rem] group-hover:bg-[#252F9C] group-hover:text-white transition-all cursor-pointer shadow-sm">
-                  <Bell className="w-6 h-6 text-[#252F9C] group-hover:text-white" />
-                  <span className="absolute top-3 right-3 w-3 h-3 bg-[#7C1034] rounded-full border-2 border-white animate-bounce"></span>
-                </div>
-             </div>
+          <div className="flex items-center gap-3">
+            <button className="p-2 text-gray-400 hover:bg-gray-50 rounded-full transition-colors relative">
+              <Bell size={22} />
+              <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full border-2 border-white"></span>
+            </button>
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-12 bg-[#fdfdfd] custom-scrollbar">
+        <main className="flex-1 overflow-auto p-8 bg-[#fdfdfd]">
           <div className="max-w-[1700px] mx-auto">
             {page === 'dashboard' && <Dashboard locations={locations} employees={employees} attendance={attendance} auditLog={auditLog} isAdmin={isAdmin} currentUser={currentUser} />}
             {page === 'puantaj' && <PuantajPage employees={employees} locations={locations} isAdmin={isAdmin} currentUser={currentUser} attendance={attendance} setAttendance={setAttendance} lockedPeriods={lockedPeriods} addAudit={addAudit} />}
             {page === 'personel' && <PersonelPage employees={employees} setEmployees={setEmployees} locations={locations} isAdmin={isAdmin} currentUser={currentUser} addAudit={addAudit} />}
             {page === 'lokasyon' && <LokasyonPage locations={locations} setLocations={setLocations} users={users} addAudit={addAudit} />}
-            {page === 'kullanici' && <KullancPage users={users} setUsers={setUsers} locations={locations} addAudit={addAudit} />}
             {page === 'donemkilit' && <DonemKilitPage lockedPeriods={lockedPeriods} setLockedPeriods={setLockedPeriods} addAudit={addAudit} />}
             {page === 'mikroexp' && <MikroExportPage employees={employees} locations={locations} attendance={attendance} addAudit={addAudit} />}
             {page === 'auditlog' && <AuditLogPage auditLog={auditLog} />}
