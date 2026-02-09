@@ -4,17 +4,17 @@ import {
   LogIn, LogOut, LayoutDashboard, Users, MapPin, UserCheck,
   ClipboardList, Lock, Unlock, FileDown, FileText, Bell, Search, Menu, X
 } from 'lucide-react';
-import { Role, Location, Employee, User, AttendanceData, AuditLog, LockedPeriods, Page } from './types';
-import { SEED_USERS, SEED_EMPLOYEES, LOCATIONS } from './constants';
-import Dashboard from './components/Dashboard';
-import PuantajPage from './components/PuantajPage';
-import PersonelPage from './components/PersonelPage';
-import LokasyonPage from './components/LokasyonPage';
-import KullancPage from './components/KullancPage';
-import DonemKilitPage from './components/DonemKilitPage';
-import MikroExportPage from './components/MikroExportPage';
-import AuditLogPage from './components/AuditLogPage';
-import LoginPage from './components/LoginPage';
+import { Role, Location, Employee, User, AttendanceData, AuditLog, LockedPeriods, Page } from './types.ts';
+import { SEED_USERS, SEED_EMPLOYEES, LOCATIONS } from './constants.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import PuantajPage from './components/PuantajPage.tsx';
+import PersonelPage from './components/PersonelPage.tsx';
+import LokasyonPage from './components/LokasyonPage.tsx';
+import KullancPage from './components/KullancPage.tsx';
+import DonemKilitPage from './components/DonemKilitPage.tsx';
+import MikroExportPage from './components/MikroExportPage.tsx';
+import AuditLogPage from './components/AuditLogPage.tsx';
+import LoginPage from './components/LoginPage.tsx';
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
