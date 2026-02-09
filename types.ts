@@ -1,5 +1,7 @@
-
-export type Role = 'ADMIN' | 'USER';
+export enum Role {
+  ADMIN = 'ADMIN',
+  USER = 'USER',
+}
 
 export interface Location {
   id: number;

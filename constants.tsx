@@ -69,12 +69,14 @@ const generateSeedEmployees = (): Employee[] => {
 export const SEED_EMPLOYEES = generateSeedEmployees();
 
 export const SEED_USERS: User[] = [
-  { id: 1, username: "admin", password: "Admin123!", role: "ADMIN", locationId: null, fullName: "Sistem Yöneticisi", isActive: true },
+  // Fix: Use Role.ADMIN enum instead of string literal "ADMIN"
+  { id: 1, username: "admin", password: "Admin123!", role: Role.ADMIN, locationId: null, fullName: "Sistem Yöneticisi", isActive: true },
   ...LOCATIONS.map((loc, i) => ({
     id: i + 2,
     username: `user${i + 1}`,
     password: "User123!",
-    role: "USER" as Role,
+    // Fix: Use Role.USER enum instead of string literal "USER"
+    role: Role.USER,
     locationId: loc.id,
     fullName: `${loc.name} Yetkilisi`,
     isActive: true
