@@ -1,128 +1,156 @@
-import { useState } from "react";
-import { Role, User, AuditLog } from "./types";
-import LoginPage from "./components/LoginPage";
-import Dashboard from "./components/Dashboard";
-import PuantajPage from "./components/PuantajPage";
-import PersonelPage from "./components/PersonelPage";
-import LokasyonPage from "./components/LokasyonPage";
-import KullancPage from "./components/KullancPage";
-import DonemKilitPage from "./components/DonemKilitPage";
-import MikroExportPage from "./components/MikroExportPage";
-import AuditLogPage from "./components/AuditLogPage";
-import Sidebar from "./components/Sidebar";
-import { LOCATIONS, USERS, INIT_EMPLOYEES } from "./data/seedData";
+import React, { useState, useCallback } from 'react';
+import {
+  LogOut, LayoutDashboard, Users, MapPin, UserCheck,
+  ClipboardList, Lock, FileDown, Bell, Menu, X, FileText
+} from 'lucide-react';
+import { Location, Employee, User, AttendanceData, AuditLog, LockedPeriods, Page, Role } from './types';
+import { SEED_USERS, SEED_EMPLOYEES, LOCATIONS } from './constants';
 
-function App() {
+// PascalCase imports to match filesystem exactly (Fixes Vercel/Linux Case Sensitivity Errors)
+import Dashboard from './components/Dashboard';
+import PuantajPage from './components/PuantajPage';
+import PersonelPage from './components/PersonelPage';
+import LokasyonPage from './components/LokasyonPage';
+import KullaniciPage from './components/KullaniciPage';
+import DonemKilitPage from './components/DonemKilitPage';
+import MikroExportPage from './components/MikroExportPage';
+import AuditLogPage from './components/AuditLogPage';
+import LoginPage from './components/LoginPage';
+
+const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [locations, setLocations] = useState(LOCATIONS);
-  const [employees, setEmployees] = useState(INIT_EMPLOYEES);
-  const [users, setUsers] = useState(USERS);
-  const [puantaj, setPuantaj] = useState({});
-  const [lockedPeriods, setLockedPeriods] = useState<{ [key: string]: boolean }>({});
-  const [auditLog, setAuditLog] = useState<AuditLog[]>([
-    {
-      id: 1,
-      user: "sistem",
-      action: "INIT",
-      detail: "Sistem başlatıldı",
-      time: new Date().toLocaleString("tr")
-    }
-  ]);
-  const [page, setPage] = useState("dashboard");
+  const [page, setPage] = useState<Page>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const addAudit = (action: string, detail: string) => {
-    setAuditLog(prev => [
-      {
-        id: prev.length + 1,
-        user: currentUser?.username || "sistem",
-        action,
-        detail,
-        time: new Date().toLocaleString("tr")
-      },
-      ...prev
-    ]);
-  };
+  const [locations, setLocations] = useState<Location[]>(LOCATIONS);
+  const [employees, setEmployees] = useState<Employee[]>(SEED_EMPLOYEES);
+  const [users, setUsers] = useState<User[]>(SEED_USERS);
+  const [attendance, setAttendance] = useState<AttendanceData>({});
+  const [lockedPeriods, setLockedPeriods] = useState<LockedPeriods>({});
+  const [auditLog, setAuditLog] = useState<AuditLog[]>([]);
 
-  const isAdmin = currentUser?.role === Role.ADMIN;
-  const userLocationId = currentUser?.locationId;
+  const addAudit = useCallback((action: string, detail: string) => {
+    const newLog: AuditLog = {
+      id: Date.now(),
+      time: new Date().toLocaleString("tr"),
+      user: currentUser?.fullName || currentUser?.username || 'Sistem',
+      action,
+      detail
+    };
+    setAuditLog(prev => [newLog, ...prev]);
+  }, [currentUser]);
 
   const handleLogin = (user: User) => {
     setCurrentUser(user);
-    setPage("dashboard");
-    addAudit("LOGIN", `${user.fullName} sisteme giriş yaptı`);
-  };
-
-  const handleLogout = () => {
-    if (currentUser) {
-      addAudit("LOGOUT", `${currentUser.fullName} sistemden çıkış yaptı`);
-    }
-    setCurrentUser(null);
+    setAuditLog(prev => [
+      {
+        id: Date.now(),
+        time: new Date().toLocaleString("tr"),
+        user: user.fullName,
+        action: 'LOGIN',
+        detail: 'Sisteme giriş yapıldı'
+      },
+      ...prev
+    ]);
   };
 
   if (!currentUser) {
     return <LoginPage users={users} onLogin={handleLogin} />;
   }
 
+  const isAdmin = currentUser.role === Role.ADMIN;
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar
-        currentUser={currentUser}
-        locations={locations}
-        isAdmin={isAdmin}
-        page={page}
-        setPage={setPage}
-        onLogout={handleLogout}
-      />
-      <main style={{ flex: 1, padding: 28, overflowX: "auto", minWidth: 0, maxWidth: "100%" }}>
-        {page === "dashboard" && (
-          <Dashboard
-            locations={locations}
-            employees={isAdmin ? employees : employees.filter(e => e.locationId === userLocationId)}
-            auditLog={auditLog}
-            isAdmin={isAdmin}
-            puantaj={puantaj}
-            userLocationId={userLocationId}
-          />
-        )}
-        {page === "puantaj" && (
-          <PuantajPage
-            employees={isAdmin ? employees : employees.filter(e => e.locationId === userLocationId)}
-            locations={locations}
-            isAdmin={isAdmin}
-            puantaj={puantaj}
-            setPuantaj={setPuantaj}
-            lockedPeriods={lockedPeriods}
-            addAudit={addAudit}
-            userLocationId={userLocationId}
-            currentUser={currentUser}
-          />
-        )}
-        {page === "personel" && (
-          <PersonelPage
-            employees={employees}
-            setEmployees={setEmployees}
-            locations={locations}
-            isAdmin={isAdmin}
-            addAudit={addAudit}
-            userLocationId={userLocationId}
-          />
-        )}
-        {page === "lokasyon" && isAdmin && (
-          <LokasyonPage locations={locations} setLocations={setLocations} addAudit={addAudit} />
-        )}
-        {page === "kullanici" && isAdmin && (
-          <KullancPage users={users} setUsers={setUsers} locations={locations} addAudit={addAudit} />
-        )}
-        {page === "donemkilit" && isAdmin && (
-          <DonemKilitPage lockedPeriods={lockedPeriods} setLockedPeriods={setLockedPeriods} addAudit={addAudit} />
-        )}
-        {page === "mikroexp" && isAdmin && (
-          <MikroExportPage employees={employees} locations={locations} puantaj={puantaj} addAudit={addAudit} />
-        )}
-        {page === "auditlog" && isAdmin && <AuditLogPage auditLog={auditLog} />}
-      </main>
+    <div className="flex h-screen bg-[#f8fafc]">
+      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-[#252f3c] text-white transition-all flex flex-col shadow-xl`}>
+        <div className="p-6 flex items-center justify-between border-b border-gray-700/50">
+          {sidebarOpen && <span className="font-bold text-xl text-blue-400 italic tracking-tighter">BİLGİN</span>}
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1.5 hover:bg-gray-700 rounded-lg">
+            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+
+        <nav className="flex-1 mt-6 px-3 space-y-1 overflow-y-auto">
+          <button onClick={() => setPage('dashboard')} className={`w-full flex items-center p-3 rounded-xl transition-colors ${page === 'dashboard' ? 'bg-blue-600 shadow-lg' : 'hover:bg-gray-800'}`}>
+            <LayoutDashboard size={20} />
+            {sidebarOpen && <span className="ml-3 font-medium text-sm">Dashboard</span>}
+          </button>
+          <button onClick={() => setPage('puantaj')} className={`w-full flex items-center p-3 rounded-xl transition-colors ${page === 'puantaj' ? 'bg-blue-600 shadow-lg' : 'hover:bg-gray-800'}`}>
+            <ClipboardList size={20} />
+            {sidebarOpen && <span className="ml-3 font-medium text-sm">Puantaj</span>}
+          </button>
+          <button onClick={() => setPage('personel')} className={`w-full flex items-center p-3 rounded-xl transition-colors ${page === 'personel' ? 'bg-blue-600 shadow-lg' : 'hover:bg-gray-800'}`}>
+            <UserCheck size={20} />
+            {sidebarOpen && <span className="ml-3 font-medium text-sm">Personel</span>}
+          </button>
+          {isAdmin && (
+            <>
+              <button onClick={() => setPage('lokasyon')} className={`w-full flex items-center p-3 rounded-xl transition-colors ${page === 'lokasyon' ? 'bg-blue-600 shadow-lg' : 'hover:bg-gray-800'}`}>
+                <MapPin size={20} />
+                {sidebarOpen && <span className="ml-3 font-medium text-sm">Lokasyonlar</span>}
+              </button>
+              <button onClick={() => setPage('kullanici')} className={`w-full flex items-center p-3 rounded-xl transition-colors ${page === 'kullanici' ? 'bg-blue-600 shadow-lg' : 'hover:bg-gray-800'}`}>
+                <Users size={20} />
+                {sidebarOpen && <span className="ml-3 font-medium text-sm">Kullanıcılar</span>}
+              </button>
+              <button onClick={() => setPage('donemkilit')} className={`w-full flex items-center p-3 rounded-xl transition-colors ${page === 'donemkilit' ? 'bg-blue-600 shadow-lg' : 'hover:bg-gray-800'}`}>
+                <Lock size={20} />
+                {sidebarOpen && <span className="ml-3 font-medium text-sm">Dönem Kilit</span>}
+              </button>
+              <button onClick={() => setPage('mikroexp')} className={`w-full flex items-center p-3 rounded-xl transition-colors ${page === 'mikroexp' ? 'bg-blue-600 shadow-lg' : 'hover:bg-gray-800'}`}>
+                <FileDown size={20} />
+                {sidebarOpen && <span className="ml-3 font-medium text-sm">Mikro Export</span>}
+              </button>
+              <button onClick={() => setPage('auditlog')} className={`w-full flex items-center p-3 rounded-xl transition-colors ${page === 'auditlog' ? 'bg-blue-600 shadow-lg' : 'hover:bg-gray-800'}`}>
+                <FileText size={20} />
+                {sidebarOpen && <span className="ml-3 font-medium text-sm">Audit Log</span>}
+              </button>
+            </>
+          )}
+        </nav>
+
+        <div className="p-4 border-t border-gray-700/50">
+          <button onClick={() => setCurrentUser(null)} className="w-full flex items-center p-3 text-red-400 hover:bg-red-900/20 rounded-xl transition-colors">
+            <LogOut size={20} />
+            {sidebarOpen && <span className="ml-3 font-medium text-sm">Çıkış</span>}
+          </button>
+        </div>
+      </aside>
+
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 shadow-sm shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200">
+              {currentUser.fullName?.[0] || currentUser.username?.[0]}
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-800 leading-none">{currentUser.fullName}</h1>
+              <p className="text-xs text-gray-500 mt-1 uppercase font-bold tracking-widest">{currentUser.role === Role.ADMIN ? 'Sistem Yöneticisi' : 'Birim Yetkilisi'}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+             <div className="p-2 text-gray-400 hover:text-blue-600 cursor-pointer relative transition-colors">
+               <Bell size={20} />
+               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+             </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto p-6 md:p-12 bg-[#fdfdfd]">
+          <div className="max-w-[1700px] mx-auto h-full">
+            {page === 'dashboard' && <Dashboard locations={locations} employees={employees} attendance={attendance} auditLog={auditLog} isAdmin={isAdmin} currentUser={currentUser} />}
+            {page === 'puantaj' && <PuantajPage employees={employees} locations={locations} isAdmin={isAdmin} currentUser={currentUser} attendance={attendance} setAttendance={setAttendance} lockedPeriods={lockedPeriods} addAudit={addAudit} />}
+            {page === 'personel' && <PersonelPage employees={employees} setEmployees={setEmployees} locations={locations} isAdmin={isAdmin} currentUser={currentUser} addAudit={addAudit} />}
+            {page === 'lokasyon' && <LokasyonPage locations={locations} setLocations={setLocations} users={users} addAudit={addAudit} />}
+            {page === 'kullanici' && <KullaniciPage users={users} setUsers={setUsers} locations={locations} addAudit={addAudit} />}
+            {page === 'donemkilit' && <DonemKilitPage lockedPeriods={lockedPeriods} setLockedPeriods={setLockedPeriods} addAudit={addAudit} />}
+            {page === 'mikroexp' && <MikroExportPage employees={employees} locations={locations} attendance={attendance} addAudit={addAudit} />}
+            {page === 'auditlog' && <AuditLogPage auditLog={auditLog} />}
+          </div>
+        </main>
+      </div>
     </div>
   );
-}
+};
 
 export default App;
