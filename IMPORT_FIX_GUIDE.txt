@@ -1,0 +1,96 @@
+// ═══════════════════════════════════════════════════════════════════
+// IMPORT UZANTILARI DÜZELTMESİ - TÜM DOSYALAR İÇİN
+// ═══════════════════════════════════════════════════════════════════
+
+// ❌ YANLIŞ:
+// import { AuditLog } from "../types/index.ts";
+// import Card from "./Card.tsx";
+
+// ✅ DOĞRU:
+// import { AuditLog } from "../types";
+// import Card from "./Card";
+
+// ═══════════════════════════════════════════════════════════════════
+// DÜZELTİLMESİ GEREKEN DOSYALAR VE SATIRLAR
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * components/AuditLogPage.tsx (satır 4):
+ * ÖNCE: import { AuditLog } from "../types/index.ts";
+ * SONRA: import { AuditLog } from "../types";
+ */
+
+/**
+ * components/DonemKilitPage.tsx (satır 4-5):
+ * ÖNCE: import { LockedPeriods } from "../types/index.ts";
+ * ÖNCE: import Card from "./Card.tsx";
+ * SONRA: import { LockedPeriods } from "../types";
+ * SONRA: import Card from "./Card";
+ */
+
+/**
+ * components/KullancPage.tsx (satır 4):
+ * ÖNCE: import { User, Location } from "../types/index.ts";
+ * SONRA: import { User, Location } from "../types";
+ * 
+ * AYRICA (satır 44): Duplicate id hatası
+ * ÖNCE: const newUser = { id: newId, ...formData, id: Date.now() };
+ * SONRA: const newUser = { id: newId, ...formData };
+ */
+
+/**
+ * components/LoginPage.tsx (satır 4):
+ * ÖNCE: import { User } from "../types/index.ts";
+ * SONRA: import { User } from "../types";
+ */
+
+/**
+ * components/LokasyonPage.tsx (satır 4):
+ * ÖNCE: import { Location } from "../types/index.ts";
+ * SONRA: import { Location } from "../types";
+ * 
+ * AYRICA (satır 35): Duplicate id hatası
+ * ÖNCE: const newLoc = { id: newId, ...formData, id: Date.now() };
+ * SONRA: const newLoc = { id: newId, ...formData };
+ */
+
+/**
+ * components/MikroExportPage.tsx (satır 4-5):
+ * ÖNCE: import { Employee, Location, PuantajData } from "../types/index.ts";
+ * ÖNCE: import ExportPreview from "./ExportPreview.tsx";
+ * SONRA: import { Employee, Location, PuantajData } from "../types";
+ * SONRA: import ExportPreview from "./ExportPreview";
+ */
+
+/**
+ * components/PersonelPage.tsx (satır 4-5):
+ * ÖNCE: import { Employee, Location } from "../types/index.ts";
+ * ÖNCE: import PersonelForm from "./PersonelForm.tsx";
+ * SONRA: import { Employee, Location } from "../types";
+ * SONRA: import PersonelForm from "./PersonelForm";
+ */
+
+// ═══════════════════════════════════════════════════════════════════
+// TOPLU DÜZELTİM İÇİN REGEX
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * VSCode veya başka editörde Find & Replace:
+ * 
+ * FIND:    from ["'](.+?)\.(ts|tsx)["']
+ * REPLACE: from "$1"
+ * 
+ * Bu tüm .ts ve .tsx uzantılarını import satırlarından kaldırır.
+ */
+
+// ═══════════════════════════════════════════════════════════════════
+// GITHUB REPO İÇİN HIZLI DÜZELTİM SCRIPT
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Terminal'de repo klasöründe çalıştır:
+ * 
+ * find src -type f \( -name "*.ts" -o -name "*.tsx" \) -exec sed -i '' 's/from "\(.*\)\.tsx\?"/from "\1"/g' {} \;
+ * 
+ * (macOS için -i '' kullan, Linux için sadece -i)
+ */
